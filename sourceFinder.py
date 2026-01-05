@@ -3,10 +3,13 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import json
 import math
+from openai import OpenAI
+import json
 
 sch = SemanticScholar()
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
+client = OpenAI()
 
 def search_papers(query: str, limit: int):
     """
@@ -74,10 +77,61 @@ def rank_papers(query: str, limit: int):
     return ranked
 
 
+def summarize_papers_with_llm(query, ranked_papers):
+    """
+    Uses OpenAI to generate human-readable explanations
+    for ranked academic sources.
+    """
+
+    system_prompt = """
+    You are an academic research assistant helping users evaluate the relevance of academic papers to their research query.
+
+    You will receive:
+    - A user's research query
+    - A ranked list of academic papers (each with title, abstract, URL, and relevance score)
+
+    For each paper, provide:
+    1. **Summary** (2-3 sentences): What the paper studies and its main findings/approach
+    2. **Relevance** (1-2 sentences): How it specifically relates to the user's query
+    3. **Recommendation** (1 sentence): Rate as "Highly Relevant", "Moderately Relevant", or "Tangentially Relevant" with brief justification
+
+    Format your response as a numbered list, one entry per paper, in the order provided.
+
+    Guidelines:
+    - Base all statements strictly on the provided abstract - do not infer or hallucinate details
+    - Use clear, accessible language (avoid excessive jargon)
+    - If an abstract is missing or too vague, note this limitation
+    - Keep each paper evaluation to 4-6 sentences total
+    - Focus on helping the user quickly decide if they should read the full paper
+    """
+
+    user_prompt = f"""
+    User query:
+    "{query}"
+
+    Papers:
+    {json.dumps(ranked_papers, indent=2)}
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        temperature=0.3
+    )
+
+    return response.choices[0].message.content0
+
+
 if __name__ == "__main__":
     query = "impact of social media on youth"
     limit = 5
-
+    
     results = rank_papers(query, limit)
-    print("\n=== Ranked Results (JSON) ===\n")
-    print(json.dumps(results, indent=2))
+
+    llm_summary = summarize_papers_with_llm(query, results)
+
+    print("\n=== LLM ANALYSIS ===\n")
+    print(llm_summary)

@@ -4,22 +4,42 @@ from sklearn.metrics.pairwise import cosine_similarity
 import json
 import math
 from openai import OpenAI
-import json
+import requests
+import time
+
 
 sch = SemanticScholar()
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 client = OpenAI()
 
-def search_papers(query: str, limit: int):
+def search_papers(query: str, limit: int, retries: int = 3):
     """
     Fetch papers from Semantic Scholar.
     Returns a list of Paper objects (library returns objects, not dicts).
     """
-    results = sch.search_paper(query, limit=limit)
+    url = "https://api.semanticscholar.org/graph/v1/paper/search"
+    params = {
+        "query": query,
+        "limit": limit,
+        "fields": "title,abstract,url,year,citationCount,influentialCitationCount,venue,publicationTypes,isOpenAccess,openAccessPdf"
+    }
 
-    # IMPORTANT: iterate over the internal list to avoid pagination iterator issues
-    return results._data
+    for attempt in range(retries):
+        response = requests.get(url, params=params, timeout=30)
+
+        if response.status_code == 200:
+            return response.json().get("data", [])
+        
+        if response.status_code == 429:
+            wait_time = 2 ** attempt
+            print(f"Rate limited by Semantic Scholar. Retrying in {wait_time}s")
+            time.sleep(wait_time)
+            continue
+
+        response.raise_for_status()
+
+    raise RuntimeError("Semantic Scholar API rate limit exceeded after retries.")
 
 
 def compute_relevance_score(query_emb, paper) -> float:
@@ -27,10 +47,11 @@ def compute_relevance_score(query_emb, paper) -> float:
     Compute a composite relevance score for a single paper.
     Score = 0.7 * semantic_similarity + 0.2 * citation_boost + 0.1 * year_boost
     """
-    title = getattr(paper, "title", "") or ""
-    abstract = getattr(paper, "abstract", None) or ""
-    year = getattr(paper, "year", None)
-    citation_count = getattr(paper, "citationCount", 0) or 0
+    title = paper.get("title") or ""
+    abstract = paper.get("abstract") or ""
+    year = paper.get("year")
+    citation_count = paper.get("citationCount") or 0
+
 
     paper_text = f"Title: {title}. Abstract: {abstract}"
     paper_emb = model.encode(paper_text, normalize_embeddings=True)
@@ -59,17 +80,17 @@ def rank_papers(query: str, limit: int):
 
     ranked = []
     for paper in papers:
-        title = getattr(paper, "title", "") or ""
+        title = paper.get("title") or ""
         print(f"Scoring: {title[:80]}")
 
         score = compute_relevance_score(query_emb, paper)
 
         ranked.append({
             "Title": title,
-            "URL": getattr(paper, "url", None),
-            "Abstract": getattr(paper, "abstract", None),
-            "Year": getattr(paper, "year", None),
-            "CitationCount": getattr(paper, "citationCount", None),
+            "URL": paper.get("url"),
+            "Abstract": paper.get("abstract") or "",
+            "Year": paper.get("year"),
+            "CitationCount": paper.get("citationCount") or 0,
             "RelevanceScore": score
         })
 
@@ -122,15 +143,16 @@ def summarize_papers_with_llm(query, ranked_papers):
         temperature=0.3
     )
 
-    return response.choices[0].message.content0
+    return response.choices[0].message.content
 
 
 if __name__ == "__main__":
     query = "impact of social media on youth"
-    limit = 5
+    limit = 3
+
     
     results = rank_papers(query, limit)
-
+    print(results)
     llm_summary = summarize_papers_with_llm(query, results)
 
     print("\n=== LLM ANALYSIS ===\n")

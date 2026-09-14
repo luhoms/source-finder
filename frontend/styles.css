@@ -1,0 +1,511 @@
+/* ============================================================
+   Source Finder — ledger index
+   Ink on bone. Vermillion is reserved for measurement and state:
+   relevance meters, score numerals, active sort, focus. Never chrome.
+   ============================================================ */
+
+:root {
+  --ink:        #15120E;
+  --bone:       #F2EEE4;
+  --leaf:       #FAF8F3;
+  --rule:       #CFC6B2;
+  --marginalia: #6B6154;
+  --vermillion: #C1330D;
+
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --rail: 78px;
+  --gutter: 22px;
+  --measure: 68ch;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bone);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 28px 120px;
+}
+
+/* ---------- shared apparatus type ---------- */
+
+.label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--marginalia);
+}
+
+/* ---------- masthead ---------- */
+
+.masthead { padding-top: 54px; }
+
+.masthead__dateline {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 10px;
+}
+.masthead__dateline span:first-child { color: var(--ink); }
+
+.masthead__title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 42px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+}
+
+.masthead__rule { height: 2px; background: var(--ink); }
+
+.masthead__note {
+  font-style: italic;
+  font-size: 15.5px;
+  color: var(--marginalia);
+  max-width: var(--measure);
+  margin: 12px 0 0;
+}
+
+/* ---------- query slip ---------- */
+
+.slip {
+  margin-top: 44px;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 26px 0 22px;
+}
+
+.field__label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.field__label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+.field__input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1.5px solid var(--ink);
+  background: var(--leaf);
+  padding: 9px 12px;
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--ink);
+  border-radius: 0;
+  outline: 0;
+}
+.field__input::placeholder { color: var(--rule); font-style: italic; }
+.field__input:focus { border-bottom-color: var(--vermillion); background: #fff; }
+
+/* Baseline alignment so the label, the figure and the checkbox caption all
+   sit on one line, the way a ruled form is set. */
+.slip__controls {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.stepper { display: flex; align-items: baseline; gap: 9px; }
+.stepper input {
+  width: 62px;
+  border: 0;
+  border-bottom: 1.5px solid var(--ink);
+  background: var(--leaf);
+  padding: 4px 8px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  color: var(--ink);
+  text-align: center;
+  border-radius: 0;
+  outline: 0;
+}
+.stepper input:focus { border-bottom-color: var(--vermillion); background: #fff; }
+.stepper input::-webkit-outer-spin-button,
+.stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.stepper input[type=number] { -moz-appearance: textfield; }
+
+.check { display: flex; align-items: center; gap: 9px; cursor: pointer; }
+.check input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px; height: 15px;
+  margin: 0;
+  border: 1.5px solid var(--ink);
+  background: var(--leaf);
+  border-radius: 0;
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+}
+.check input::after {
+  content: "";
+  width: 7px; height: 7px;
+  background: var(--vermillion);
+  transform: scale(0);
+}
+.check input:checked::after { transform: scale(1); }
+.check input:focus-visible { outline: 2px solid var(--vermillion); outline-offset: 2px; }
+.check span { color: var(--ink); }
+
+.btn {
+  margin-left: auto;
+  align-self: flex-end;
+  border: 0;
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 11px 26px;
+  cursor: pointer;
+}
+.btn:hover { background: var(--vermillion); }
+.btn:focus-visible { outline: 2px solid var(--vermillion); outline-offset: 2px; }
+.btn[disabled] { background: var(--rule); color: var(--leaf); cursor: default; }
+
+/* ---------- scoring formula (empty state) ---------- */
+
+.formula { margin-top: 46px; }
+.formula__head { margin-bottom: 14px; }
+/* Set on the same rail grid as an index entry, with the same ledger rule, so
+   the empty state and the results read as one continuous document. */
+.formula table {
+  width: 100%;
+  max-width: 560px;
+  border-collapse: collapse;
+  background-image: linear-gradient(var(--rule), var(--rule));
+  background-size: 1px 100%;
+  background-position: var(--rail) 0;
+  background-repeat: no-repeat;
+}
+.formula td {
+  border-bottom: 1px solid var(--rule);
+  padding: 9px 0;
+  font-size: 15px;
+  color: var(--ink);
+}
+.formula td:first-child {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--vermillion);
+  width: var(--rail);
+  text-align: right;
+  padding-right: 13px;
+}
+.formula td:last-child {
+  color: var(--marginalia);
+  font-style: italic;
+  padding-left: var(--gutter);
+}
+.formula tr:first-child td { border-top: 1px solid var(--rule); }
+
+/* ---------- index header ---------- */
+
+.index { margin-top: 46px; }
+
+.index__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 20px;
+  padding-bottom: 9px;
+  border-bottom: 2px solid var(--ink);
+  flex-wrap: wrap;
+}
+
+.sorts { display: flex; gap: 16px; }
+.sorts button {
+  border: 0;
+  background: none;
+  padding: 0 0 2px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--marginalia);
+  cursor: pointer;
+  border-bottom: 1.5px solid transparent;
+}
+.sorts button:hover { color: var(--ink); }
+.sorts button[aria-pressed="true"] {
+  color: var(--vermillion);
+  border-bottom-color: var(--vermillion);
+}
+
+/* ---------- entries ---------- */
+
+.entries { animation: rise 220ms ease-out both; }
+@keyframes rise { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+/* The ledger rule is painted on the row rather than as a border on the rail,
+   so it spans the full padded height and the rules of consecutive entries
+   join into one unbroken vertical line down the whole index. */
+.entry {
+  display: grid;
+  grid-template-columns: var(--rail) 1fr;
+  column-gap: var(--gutter);
+  border-bottom: 1px solid var(--rule);
+  padding: 20px 0 21px;
+  background-color: transparent;
+  background-image: linear-gradient(var(--rule), var(--rule));
+  background-size: 1px 100%;
+  background-position: var(--rail) 0;
+  background-repeat: no-repeat;
+}
+.entry:hover { background-color: var(--leaf); }
+.entry:hover .entry__ord { color: var(--vermillion); }
+
+.entry__rail {
+  padding-right: 13px;
+  text-align: right;
+}
+
+.entry__ord {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.entry__score {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--vermillion);
+  margin-top: 6px;
+}
+
+.meter { display: flex; gap: 1px; justify-content: flex-end; margin-top: 7px; }
+.meter i { width: 4px; height: 9px; background: var(--rule); }
+.meter i.on { background: var(--vermillion); }
+
+.entry__body { min-width: 0; }
+
+.entry__title {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.32;
+  letter-spacing: -0.005em;
+  margin: -2px 0 7px;
+  max-width: var(--measure);
+}
+.entry__title a { color: var(--ink); text-decoration: none; }
+.entry__title a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.apparatus { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 9px; }
+.apparatus span { display: inline-flex; gap: 5px; }
+.apparatus b { font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.apparatus .flag { color: var(--vermillion); }
+
+.abstract {
+  font-size: 15px;
+  line-height: 1.58;
+  color: var(--marginalia);
+  margin: 0 0 11px;
+  max-width: var(--measure);
+}
+.abstract.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.abstract--none { font-style: italic; color: var(--rule); }
+
+.actions { display: flex; gap: 18px; flex-wrap: wrap; }
+.actions a, .actions button {
+  border: 0;
+  background: none;
+  padding: 0 0 2px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--marginalia);
+  text-decoration: none;
+  cursor: pointer;
+  border-bottom: 1px solid var(--rule);
+}
+.actions a:hover, .actions button:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.actions .primary { color: var(--ink); border-bottom-color: var(--vermillion); }
+.actions .primary:hover { color: var(--vermillion); border-bottom-color: var(--vermillion); }
+
+/* ---------- synthesis banner (unparsed appraisal fallback) ---------- */
+
+.synthesis {
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  padding: 16px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+/* ---------- status blocks ---------- */
+
+.status {
+  padding: 34px 0;
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+.status p { font-size: 16px; color: var(--marginalia); margin: 8px 0 0; max-width: var(--measure); }
+.status--error { border-top-color: var(--vermillion); }
+.status--error .label { color: var(--vermillion); }
+
+.caret {
+  display: inline-block;
+  width: 7px; height: 14px;
+  background: var(--vermillion);
+  vertical-align: -2px;
+  margin-left: 4px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- modal: inverted ink field ---------- */
+
+.modal[hidden] { display: none !important; }
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(21, 18, 14, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+.modal__sheet {
+  background: var(--ink);
+  color: var(--bone);
+  width: 100%;
+  max-width: 680px;
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+}
+
+.modal__head {
+  display: grid;
+  grid-template-columns: var(--rail) 1fr auto;
+  column-gap: var(--gutter);
+  align-items: start;
+  padding: 22px 26px 18px;
+  border-bottom: 1px solid rgba(242, 238, 228, 0.22);
+}
+.modal__ord {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1;
+  text-align: right;
+  color: var(--vermillion);
+  padding-right: var(--gutter);
+  border-right: 1px solid rgba(242, 238, 228, 0.22);
+  margin-right: calc(var(--gutter) * -1 + 1px);
+}
+.modal__kicker { color: rgba(242, 238, 228, 0.55); display: block; margin-bottom: 6px; }
+.modal__title {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.32;
+  margin: 0;
+  color: var(--bone);
+}
+.modal__close {
+  border: 0;
+  background: none;
+  color: rgba(242, 238, 228, 0.55);
+  font-family: var(--mono);
+  font-size: 15px;
+  cursor: pointer;
+  padding-left: 14px;
+  line-height: 1;
+}
+.modal__close:hover { color: var(--vermillion); }
+
+.modal__body {
+  overflow-y: auto;
+  padding: 22px 26px 30px;
+  padding-left: calc(26px + var(--rail) + var(--gutter));
+}
+.modal__body p {
+  font-size: 16px;
+  line-height: 1.62;
+  margin: 0 0 13px;
+  color: rgba(242, 238, 228, 0.86);
+  max-width: 60ch;
+}
+.modal__body p:last-child { margin-bottom: 0; }
+.modal__body .heading {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--vermillion);
+  margin-bottom: 3px;
+}
+.modal__foot {
+  border-top: 1px solid rgba(242, 238, 228, 0.22);
+  padding: 12px 26px;
+  color: rgba(242, 238, 228, 0.42);
+}
+
+/* ---------- narrow ---------- */
+
+@media (max-width: 620px) {
+  :root { --rail: 56px; --gutter: 14px; }
+  .page { padding: 0 18px 80px; }
+  .masthead__title { font-size: 32px; }
+  .field__input { font-size: 18px; }
+  .btn { margin-left: 0; width: 100%; }
+  .modal__body { padding-left: 22px; }
+  .modal__head { padding: 18px 20px 14px; }
+}

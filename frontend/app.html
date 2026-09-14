@@ -1,107 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Source Finder</title>
-    <!-- Tailwind CSS CDN - provides utility classes for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Source Finder — Relevance-Ranked Literature Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="bg-gray-50">
-    <!-- Main container: max-width, centered, with padding -->
-    <div class="max-w-4xl mx-auto px-4 py-12">
+<body>
+<div class="page">
 
-        <!-- Header section -->
-        <div class="mb-12">
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">Source Finder</h1>
-            <p class="text-gray-600">Search academic papers using semantic similarity and AI-powered summaries</p>
-        </div>
+  <!-- ============ masthead ============ -->
+  <header class="masthead">
+    <div class="masthead__dateline label">
+      <span>Relevance-Ranked Literature Search</span>
+      <span>Semantic Scholar &middot; all-MiniLM-L6-v2</span>
+    </div>
+    <h1 class="masthead__title">Source Finder</h1>
+    <div class="masthead__rule"></div>
+    <p class="masthead__note">
+      Every paper returned by the Semantic Scholar graph is re-scored against the
+      meaning of your query, then filed in rank order with its measurement shown.
+    </p>
+  </header>
 
-        <!-- Search form -->
-        <form id="form" class="bg-white rounded-lg shadow-md p-8 mb-8">
-
-            <!-- Query input -->
-            <div class="mb-6">
-                <label for="query" class="block text-sm font-medium text-gray-700 mb-2">
-                    Search Query
-                </label>
-                <input
-                    type="text"
-                    id="query"
-                    name="query"
-                    required
-                    placeholder="e.g., machine learning in healthcare"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-            </div>
-
-            <!-- Limit input -->
-            <div class="mb-6">
-                <label for="limit" class="block text-sm font-medium text-gray-700 mb-2">
-                    Number of Results (Max 100)
-                </label>
-                <input
-                    type="number"
-                    id="limit"
-                    name="limit"
-                    required
-                    value="5"
-                    min="1"
-                    max="100"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-            </div>
-
-            <!-- LLM checkbox -->
-            <div class="mb-6 flex items-center">
-                <input
-                    type="checkbox"
-                    id="llm"
-                    name="llm"
-                    value="true"
-                    class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                >
-                <label for="llm" class="ml-2 text-sm font-medium text-gray-700">
-                    Include AI-powered paper summaries (uses OpenAI)
-                </label>
-            </div>
-
-            <!-- Submit button -->
-            <button
-                type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
-            >
-                Search
-            </button>
-        </form>
-
-        <!-- Results section -->
-        <div id="results" class="space-y-4"></div>
+  <!-- ============ query slip ============ -->
+  <form id="form" class="slip">
+    <div class="field">
+      <div class="field__label"><span class="label">Query</span></div>
+      <input
+        type="text" id="query" name="query" required autocomplete="off"
+        class="field__input"
+        placeholder="machine learning in healthcare&hellip;">
     </div>
 
-    <!-- AI Summary Modal -->
-    <div id="summaryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto shadow-xl">
-            <!-- Modal Header -->
-            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-                <h2 class="text-2xl font-bold text-gray-900">AI Summary</h2>
-                <button
-                    onclick="closeModal()"
-                    class="text-gray-400 hover:text-gray-600 text-2xl font-light"
-                >
-                    ✕
-                </button>
-            </div>
+    <div class="slip__controls">
+      <div class="stepper">
+        <label for="limit" class="label">Records</label>
+        <input type="number" id="limit" name="limit" value="10" min="1" max="100" required>
+      </div>
 
-            <!-- Modal Content -->
-            <div id="summaryContent" class="p-6 text-gray-800 leading-relaxed whitespace-pre-wrap">
-                <!-- Summary text will be inserted here -->
-            </div>
-        </div>
+      <label class="check" for="llm">
+        <input type="checkbox" id="llm" name="llm" value="true">
+        <span class="label">Appraise with LLM</span>
+      </label>
+
+      <button type="submit" id="submit" class="btn">Search</button>
     </div>
+  </form>
 
-    <!-- Load the fetch.js script at the end so DOM is ready -->
-    <script src="fetch.js"></script>
+  <!-- ============ results ============ -->
+  <main id="results" aria-live="polite">
+    <!-- empty state: the scoring formula, printed -->
+    <section class="formula">
+      <div class="formula__head label">Composite relevance &mdash; how a score is built</div>
+      <table>
+        <tbody>
+          <tr><td>0.70</td><td>Cosine similarity of query and title + abstract embeddings</td></tr>
+          <tr><td>0.20</td><td>Citation weight, log-scaled</td></tr>
+          <tr><td>0.10</td><td>Recency, measured from the year 2000</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+</div>
+
+<!-- ============ appraisal modal ============ -->
+<div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal__sheet">
+    <div class="modal__head">
+      <div id="modalOrd" class="modal__ord">01</div>
+      <div>
+        <span id="modalKicker" class="modal__kicker label">Appraisal</span>
+        <h2 id="modalTitle" class="modal__title"></h2>
+      </div>
+      <button type="button" id="modalClose" class="modal__close" aria-label="Close appraisal">&#10005;</button>
+    </div>
+    <div id="modalBody" class="modal__body"></div>
+    <div class="modal__foot label">Generated by gpt-4o-mini from the abstract only &mdash; verify against the source</div>
+  </div>
+</div>
+
+<script src="fetch.js"></script>
 </body>
 </html>

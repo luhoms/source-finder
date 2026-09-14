@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Source Finder</title>
+    <!-- Tailwind CSS CDN - provides utility classes for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Main container: max-width, centered, with padding -->
+    <div class="max-w-4xl mx-auto px-4 py-12">
+
+        <!-- Header section -->
+        <div class="mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">Source Finder</h1>
+            <p class="text-gray-600">Search academic papers using semantic similarity and AI-powered summaries</p>
+        </div>
+
+        <!-- Search form -->
+        <form id="form" class="bg-white rounded-lg shadow-md p-8 mb-8">
+
+            <!-- Query input -->
+            <div class="mb-6">
+                <label for="query" class="block text-sm font-medium text-gray-700 mb-2">
+                    Search Query
+                </label>
+                <input
+                    type="text"
+                    id="query"
+                    name="query"
+                    required
+                    placeholder="e.g., machine learning in healthcare"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <!-- Limit input -->
+            <div class="mb-6">
+                <label for="limit" class="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Results (Max 100)
+                </label>
+                <input
+                    type="number"
+                    id="limit"
+                    name="limit"
+                    required
+                    value="5"
+                    min="1"
+                    max="100"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <!-- LLM checkbox -->
+            <div class="mb-6 flex items-center">
+                <input
+                    type="checkbox"
+                    id="llm"
+                    name="llm"
+                    value="true"
+                    class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                >
+                <label for="llm" class="ml-2 text-sm font-medium text-gray-700">
+                    Include AI-powered paper summaries (uses OpenAI)
+                </label>
+            </div>
+
+            <!-- Submit button -->
+            <button
+                type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+            >
+                Search
+            </button>
+        </form>
+
+        <!-- Results section -->
+        <div id="results" class="space-y-4"></div>
+    </div>
+
+    <!-- AI Summary Modal -->
+    <div id="summaryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto shadow-xl">
+            <!-- Modal Header -->
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-900">AI Summary</h2>
+                <button
+                    onclick="closeModal()"
+                    class="text-gray-400 hover:text-gray-600 text-2xl font-light"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div id="summaryContent" class="p-6 text-gray-800 leading-relaxed whitespace-pre-wrap">
+                <!-- Summary text will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Load the fetch.js script at the end so DOM is ready -->
+    <script src="fetch.js"></script>
+</body>
+</html>
